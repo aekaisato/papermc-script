@@ -44,6 +44,7 @@ parser.add_argument(
     "version", help="major version number, e.g. 1.20 instead of 1.20.1", type=str
 )
 parser.add_argument("-b", "--build", help="papermc build number", type=int)
+parser.add_argument("-e", "--experimental", help="use experimental channel", action="store_true")
 parser.add_argument(
     "-f",
     "--filename",
@@ -70,11 +71,13 @@ if not args["skip_download"]:
     family_info = json.loads(
         fetch(f"{API_ENDPOINT}/version_group/{args['version']}/builds")
     )
+    channel = "experimental" if args["experimental"] else "default"
     build_number = args["build"]
+    builds_filtered = [x for x in family_info["builds"] if x["channel"] == channel]
     if not build_number:
-        build_number = max(family_info["builds"], key=lambda x: x["build"])["build"]
+        build_number = builds_filtered[-1]["build"]
 
-    build_info = [x for x in family_info["builds"] if x["build"] == build_number][0]
+    build_info = [x for x in builds_filtered if x["build"] == build_number][0]
     if build_info["channel"] == "experimental":
         print("warning: using experimental build")
 
